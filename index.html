@@ -2,92 +2,234 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>성경 웹앱</title>
+  <title>성경 검색 웹앱</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; }
-    header {
-      background-color: #002f67;
+    body {
+      margin: 0;
+      background-color: #0D3870;
+      font-family: 'Segoe UI', sans-serif;
       color: white;
-      padding: 10px;
+    }
+    .container {
+      padding: 30px;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: space-between;
     }
     .search-bar {
       display: flex;
       align-items: center;
-      background: white;
-      border-radius: 5px;
-      padding: 5px;
-      flex: 1;
-      margin-right: 10px;
+      background-color: white;
+      border-radius: 8px;
+      padding: 6px 12px;
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 10px;
     }
     .search-bar input {
       border: none;
-      flex: 1;
+      outline: none;
+      flex-grow: 1;
       font-size: 16px;
-      padding: 5px;
+      padding: 8px;
     }
-    .search-bar button, .mic-icon {
-      background: none;
-      border: none;
+    .search-icon, .mic-icon {
+      width: 26px;
+      height: 26px;
+      margin: 0 8px;
       cursor: pointer;
-      margin-left: 5px;
     }
-    .filters {
+    .filter-box {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      background-color: #08366a;
+      padding: 14px 20px;
+      border-radius: 10px;
+      gap: 12px 30px;
+    }
+    .lang-group {
       display: flex;
       align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
     }
-    .filters label {
-      margin-right: 10px;
-      color: white;
+    .lang-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
-    #results {
-      padding: 20px;
+    .flag {
+      width: 33px;
+      height: 23px;
+      border-radius: 6px;
+      object-fit: cover;
     }
-    .verse {
-      padding: 5px 0;
-    }
-    .highlight {
-      color: red;
+    .lang-label {
       font-weight: bold;
+      margin-right: 4px;
+    }
+    .filter-item {
+      display: flex;
+      align-items: center;
+      background-color: transparent;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .filter-item input[type="checkbox"] {
+      display: none;
+    }
+    .filter-item.checked {
+      background-color: #f4aa38;
+      color: black;
+      font-weight: bold;
+    }
+    .filter-item::before {
+      content: "✓";
+      display: inline-block;
+      margin-right: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .filter-item.checked::before {
+      opacity: 1;
+    }
+    .verse-container {
+      margin-top: 20px;
+      background: white;
+      color: black;
+      padding: 24px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 720px;
+      font-size: 17px;
+      line-height: 1.8;
     }
     .chapter-title {
       font-size: 22px;
       font-weight: bold;
-      color: #002f67;
-      margin-top: 20px;
+      color: #183B6A;
+      margin-bottom: 12px;
+    }
+    .highlight {
+      color: red;
+      font-weight: bold;
+      background: yellow;
     }
   </style>
 </head>
 <body>
-  <header>
+  <div class="container">
+    <!-- 검색창 -->
     <div class="search-bar">
-      <img src="mic.png" class="mic-icon" width="24" />
-      <input id="searchInput" placeholder="예: 창1:1 또는 태초에" />
-      <button onclick="doSearch()">
-        <img src="search.png" width="20" />
-      </button>
+      <input type="text" id="searchInput" placeholder="예: 창1:1 또는 태초에" />
+      <img src="https://img.icons8.com/ios-filled/50/000000/microphone.png" class="mic-icon" alt="mic" />
+      <img src="https://img.icons8.com/ios-filled/50/000000/search--v1.png" class="search-icon" alt="search" onclick="handleSearch()" />
     </div>
-    <div class="filters">
-      <label><img src="flags/kr.png" width="20" /> 개역개정</label>
-      <label><img src="flags/us.png" width="20" /> NIV</label>
+    <div id="resultCount" style="margin-bottom: 10px; font-weight: bold;"></div>
+
+    <!-- 필터 -->
+    <div class="filter-box">
+      <div class="lang-section">
+        <div class="lang-group">
+          <img src="https://flagcdn.com/w320/kr.png" class="flag" />
+          <span class="lang-label">한국어</span>
+          <label class="filter-item checked"><input type="checkbox" checked data-version="개역개정" />개역개정</label>
+          <label class="filter-item"><input type="checkbox" data-version="개역한글" />개역한글</label>
+          <label class="filter-item"><input type="checkbox" data-version="표준새번역" />표준새번역</label>
+          <label class="filter-item"><input type="checkbox" data-version="새번역" />새번역</label>
+          <label class="filter-item"><input type="checkbox" data-version="공동번역" />공동번역</label>
+          <label class="filter-item"><input type="checkbox" data-version="공동번역개정판" />공동번역개정판</label>
+        </div>
+        <div class="lang-group">
+          <img src="https://flagcdn.com/w320/jp.png" class="flag" />
+          <span class="lang-label">일어</span>
+          <label class="filter-item"><input type="checkbox" data-version="新共同訳" />新共同訳</label>
+          <label class="filter-item"><input type="checkbox" data-version="口語訳" />口語訳</label>
+          <label class="filter-item"><input type="checkbox" data-version="新改訳" />新改訳</label>
+        </div>
+      </div>
+      <div class="lang-section">
+        <div class="lang-group">
+          <img src="https://flagcdn.com/w320/us.png" class="flag" />
+          <span class="lang-label">영어</span>
+          <label class="filter-item"><input type="checkbox" data-version="NIV" />NIV</label>
+          <label class="filter-item"><input type="checkbox" data-version="KJV" />KJV</label>
+        </div>
+        <div class="lang-group">
+          <img src="https://flagcdn.com/w320/cn.png" class="flag" />
+          <span class="lang-label">중국어 간체</span>
+          <label class="filter-item"><input type="checkbox" data-version="NCV(간체)" />NCV</label>
+          <label class="filter-item"><input type="checkbox" data-version="CUV(간체)" />CUV</label>
+          <label class="filter-item"><input type="checkbox" data-version="和合本(간체)" />和合本</label>
+        </div>
+        <div class="lang-group">
+          <img src="https://flagcdn.com/w320/tw.png" class="flag" />
+          <span class="lang-label">중국어 번체</span>
+          <label class="filter-item"><input type="checkbox" data-version="NCV(번체)" />NCV</label>
+          <label class="filter-item"><input type="checkbox" data-version="CUV(번체)" />CUV</label>
+          <label class="filter-item"><input type="checkbox" data-version="和合本(번체)" />和合本</label>
+        </div>
+      </div>
     </div>
-  </header>
-  <div id="results">
-    <div class="chapter-title">창세기 1장</div>
-    <div class="verse">1. 태초에 하나님이 천지를 창조하시니라</div>
-    <div class="verse">2. 땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 영은 수면 위에 운행하시니라</div>
-    <div class="verse">3. 하나님이 이르시되 빛이 있으라 하시니 빛이 있었고</div>
-    <div class="verse">4. 빛이 하나님이 보시기에 좋았더라 하나님이 빛과 어둠을 나누사</div>
-    <div class="verse">5. 하나님이 빛을 낮이라 부르시고 어둠을 밤이라 부르시니라 저녁이 되고 아침이 되니 이는 첫째 날이니라</div>
+
+    <!-- 성경 구절 -->
+    <div class="verse-container" id="verseArea">
+      <div class="chapter-title">창세기 1장</div>
+      <div id="verses">
+        <div id="verse-1">1. 태초에 하나님이 천지를 창조하시니라</div>
+        <div id="verse-2">2. 땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 영은 수면 위에 운행하시니라</div>
+        <div id="verse-3">3. 하나님이 이르시되 빛이 있으라 하시니 빛이 있었고</div>
+        <div id="verse-4">4. 빛이 하나님이 보시기에 좋았더라 하나님이 빛과 어둠을 나누사</div>
+        <div id="verse-5">5. 하나님이 빛을 낮이라 부르시고 어둠을 밤이라 부르시니라 저녁이 되고 아침이 되니 이는 첫째 날이니라</div>
+      </div>
+    </div>
   </div>
+
   <script>
-    function doSearch() {
-      const input = document.getElementById("searchInput").value;
-      alert("검색 기능은 나중에 구현됩니다: " + input);
+    document.querySelectorAll('.filter-item').forEach(item => {
+      const checkbox = item.querySelector('input');
+      checkbox.addEventListener('change', () => {
+        item.classList.toggle('checked', checkbox.checked);
+      });
+    });
+
+    function highlight(text, keyword) {
+      const safe = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return text.replace(new RegExp(safe, 'gi'), m => `<span class="highlight">${m}</span>`);
     }
+
+    function handleSearch() {
+      const keyword = document.getElementById('searchInput').value.trim().replace(/\s+/g, '');
+      const verses = document.querySelectorAll('#verses > div');
+      let matchCount = 0;
+
+      verses.forEach(v => {
+        const rawText = v.textContent.trim().replace(/\s+/g, '');
+        if (rawText.includes(keyword)) {
+          v.innerHTML = highlight(v.textContent, keyword);
+          if (matchCount === 0) v.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          matchCount++;
+        } else {
+          v.innerHTML = v.textContent;
+        }
+      });
+
+      document.getElementById('resultCount').textContent = `${matchCount}개 결과`;
+    }
+
+    document.addEventListener('copy', (e) => {
+      const verses = document.querySelectorAll('#verses > div');
+      let copied = '';
+      verses.forEach(v => copied += v.textContent.trim() + '\n');
+      copied = copied.trim().replace(/\n+/g, '\n');
+      copied += '\n(창세기 1:1-5 개역개정)';
+      e.clipboardData.setData('text/plain', copied);
+      e.preventDefault();
+    });
   </script>
 </body>
 </html>
