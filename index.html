@@ -12,7 +12,7 @@
       color: white;
     }
     .container {
-      padding: 30px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -24,21 +24,27 @@
       border-radius: 8px;
       padding: 6px 12px;
       width: 100%;
-      max-width: 600px;
+      max-width: 800px;
       margin-bottom: 10px;
+      gap: 8px;
     }
-    .search-bar input {
+    .search-bar input, .search-bar select {
       border: none;
       outline: none;
-      flex-grow: 1;
       font-size: 16px;
-      padding: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    .search-bar input {
+      flex-grow: 1;
     }
     .search-icon, .mic-icon {
       width: 26px;
       height: 26px;
-      margin: 0 8px;
       cursor: pointer;
+    }
+    .mic-icon {
+      margin-right: 4px;
     }
     .filter-box {
       display: flex;
@@ -55,14 +61,9 @@
       gap: 6px;
       flex-wrap: wrap;
     }
-    .lang-section {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
     .flag {
-      width: 33px;
-      height: 23px;
+      width: 42px;
+      height: 29px;
       border-radius: 6px;
       object-fit: cover;
     }
@@ -104,7 +105,7 @@
       padding: 24px;
       border-radius: 12px;
       width: 100%;
-      max-width: 720px;
+      max-width: 800px;
       font-size: 17px;
       line-height: 1.8;
     }
@@ -113,11 +114,16 @@
       font-weight: bold;
       color: #183B6A;
       margin-bottom: 12px;
+      text-align: left;
     }
     .highlight {
       color: red;
       font-weight: bold;
       background: yellow;
+    }
+    #resultCount {
+      font-weight: bold;
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -125,54 +131,42 @@
   <div class="container">
     <!-- 검색창 -->
     <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="예: 창1:1 또는 태초에" />
-      <img src="https://img.icons8.com/ios-filled/50/000000/microphone.png" class="mic-icon" alt="mic" />
-      <img src="https://img.icons8.com/ios-filled/50/000000/search--v1.png" class="search-icon" alt="search" onclick="handleSearch()" />
-    </div>
-    <div id="resultCount" style="margin-bottom: 10px; font-weight: bold;"></div>
+  <input type="text" id="searchInput" placeholder="예: 창1:1 또는 태초에" />
+  <img src="https://img.icons8.com/ios-filled/50/000000/microphone.png" class="mic-icon" alt="mic" />
+  <img src="https://img.icons8.com/ios-filled/50/000000/search--v1.png" class="search-icon" alt="search" onclick="handleSearch()" />
+  <select id="bookSelect">
+    <option value="">성경권</option>
+    <option value="창세기">창세기</option>
+    <option value="출애굽기">출애굽기</option>
+    <option value="레위기">레위기</option>
+  </select>
+  <select id="chapterSelect">
+    <option value="">장</option>
+    ${[...Array(50)].map((_, i) => `<option value="${i + 1}">${i + 1}장</option>`).join('')}
+  </select>
+  <select id="verseSelect">
+    <option value="">절</option>
+    ${[...Array(50)].map((_, i) => `<option value="${i + 1}">${i + 1}절</option>`).join('')}
+  </select>
+</div>
+    <div id="resultCount"></div>
 
     <!-- 필터 -->
     <div class="filter-box">
-      <div class="lang-section">
-        <div class="lang-group">
-          <img src="https://flagcdn.com/w320/kr.png" class="flag" />
-          <span class="lang-label">한국어</span>
-          <label class="filter-item checked"><input type="checkbox" checked data-version="개역개정" />개역개정</label>
-          <label class="filter-item"><input type="checkbox" data-version="개역한글" />개역한글</label>
-          <label class="filter-item"><input type="checkbox" data-version="표준새번역" />표준새번역</label>
-          <label class="filter-item"><input type="checkbox" data-version="새번역" />새번역</label>
-          <label class="filter-item"><input type="checkbox" data-version="공동번역" />공동번역</label>
-          <label class="filter-item"><input type="checkbox" data-version="공동번역개정판" />공동번역개정판</label>
-        </div>
-        <div class="lang-group">
-          <img src="https://flagcdn.com/w320/jp.png" class="flag" />
-          <span class="lang-label">일어</span>
-          <label class="filter-item"><input type="checkbox" data-version="新共同訳" />新共同訳</label>
-          <label class="filter-item"><input type="checkbox" data-version="口語訳" />口語訳</label>
-          <label class="filter-item"><input type="checkbox" data-version="新改訳" />新改訳</label>
-        </div>
+      <div class="lang-group">
+        <img src="https://flagcdn.com/w320/kr.png" class="flag" />
+        <span class="lang-label">한국어</span>
+        <label class="filter-item checked"><input type="checkbox" checked data-version="개역개정" />개역개정</label>
+        <label class="filter-item"><input type="checkbox" data-version="개역한글" />개역한글</label>
+        <label class="filter-item"><input type="checkbox" data-version="표준새번역" />표준새번역</label>
+        <label class="filter-item"><input type="checkbox" data-version="새번역" />새번역</label>
+        <label class="filter-item"><input type="checkbox" data-version="공동번역" />공동번역</label>
       </div>
-      <div class="lang-section">
-        <div class="lang-group">
-          <img src="https://flagcdn.com/w320/us.png" class="flag" />
-          <span class="lang-label">영어</span>
-          <label class="filter-item"><input type="checkbox" data-version="NIV" />NIV</label>
-          <label class="filter-item"><input type="checkbox" data-version="KJV" />KJV</label>
-        </div>
-        <div class="lang-group">
-          <img src="https://flagcdn.com/w320/cn.png" class="flag" />
-          <span class="lang-label">중국어 간체</span>
-          <label class="filter-item"><input type="checkbox" data-version="NCV(간체)" />NCV</label>
-          <label class="filter-item"><input type="checkbox" data-version="CUV(간체)" />CUV</label>
-          <label class="filter-item"><input type="checkbox" data-version="和合本(간체)" />和合本</label>
-        </div>
-        <div class="lang-group">
-          <img src="https://flagcdn.com/w320/tw.png" class="flag" />
-          <span class="lang-label">중국어 번체</span>
-          <label class="filter-item"><input type="checkbox" data-version="NCV(번체)" />NCV</label>
-          <label class="filter-item"><input type="checkbox" data-version="CUV(번체)" />CUV</label>
-          <label class="filter-item"><input type="checkbox" data-version="和合本(번체)" />和合本</label>
-        </div>
+      <div class="lang-group">
+        <img src="https://flagcdn.com/w320/us.png" class="flag" />
+        <span class="lang-label">영어</span>
+        <label class="filter-item"><input type="checkbox" data-version="NIV" />NIV</label>
+        <label class="filter-item"><input type="checkbox" data-version="KJV" />KJV</label>
       </div>
     </div>
 
@@ -197,20 +191,35 @@
       });
     });
 
+    // 드롭다운이 바뀌면 검색창에 반영
+    document.getElementById('bookSelect').addEventListener('change', updateSearchInputFromDropdown);
+    document.getElementById('chapterSelect').addEventListener('change', updateSearchInputFromDropdown);
+    document.getElementById('verseSelect').addEventListener('change', updateSearchInputFromDropdown);
+
+    function updateSearchInputFromDropdown() {
+      const book = document.getElementById('bookSelect').value;
+      const chapter = document.getElementById('chapterSelect').value;
+      const verse = document.getElementById('verseSelect').value;
+      if (book && chapter && verse) {
+        document.getElementById('searchInput').value = `${book.replace(/ /g, '')}${chapter.replace('장', '')}:${verse.replace('절', '')}`;
+      }
+    }
+
     function highlight(text, keyword) {
       const safe = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       return text.replace(new RegExp(safe, 'gi'), m => `<span class="highlight">${m}</span>`);
     }
 
     function handleSearch() {
-      const keyword = document.getElementById('searchInput').value.trim().replace(/\s+/g, '');
+      const keywordRaw = document.getElementById('searchInput').value.trim();
+      const keyword = keywordRaw.replace(/\s+/g, '');
       const verses = document.querySelectorAll('#verses > div');
       let matchCount = 0;
 
       verses.forEach(v => {
-        const rawText = v.textContent.trim().replace(/\s+/g, '');
-        if (rawText.includes(keyword)) {
-          v.innerHTML = highlight(v.textContent, keyword);
+        const verseTextRaw = v.textContent.trim().replace(/\s+/g, '');
+        if (verseTextRaw.includes(keyword)) {
+          v.innerHTML = highlight(v.textContent, keywordRaw);
           if (matchCount === 0) v.scrollIntoView({ behavior: 'smooth', block: 'center' });
           matchCount++;
         } else {
@@ -221,14 +230,76 @@
       document.getElementById('resultCount').textContent = `${matchCount}개 결과`;
     }
 
-    document.addEventListener('copy', (e) => {
-      const verses = document.querySelectorAll('#verses > div');
-      let copied = '';
-      verses.forEach(v => copied += v.textContent.trim() + '\n');
-      copied = copied.trim().replace(/\n+/g, '\n');
-      copied += '\n(창세기 1:1-5 개역개정)';
-      e.clipboardData.setData('text/plain', copied);
+    // Enter 키
+    document.getElementById('searchInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') handleSearch();
+    });
+
+    // 복사 시 출처 추가
+    document.addEventListener('copy', function (e) {
+      const selection = window.getSelection().toString().trim();
+      if (!selection) return;
+
+      const allVerses = Array.from(document.querySelectorAll('#verses > div'));
+      const chapterTitle = document.querySelector('.chapter-title').textContent.trim();
+      const book = chapterTitle.split(' ')[0];
+      const chapter = chapterTitle.split(' ')[1].replace('장', '');
+      const version = document.querySelector('.filter-item.checked input')?.getAttribute('data-version') || '';
+
+      let verseNumbers = [];
+      allVerses.forEach(v => {
+        const verseText = v.textContent.trim();
+        const numMatch = verseText.match(/^(\d+)\.\s*/);
+        if (numMatch && selection.includes(verseText)) {
+          verseNumbers.push(parseInt(numMatch[1]));
+        }
+      });
+
+      if (verseNumbers.length === 0) return;
+
+      const start = Math.min(...verseNumbers);
+      const end = Math.max(...verseNumbers);
+      let rangeText = (start === end)
+        ? `(${book} ${chapter}:${start}${version ? ' ' + version : ''})`
+        : `(${book} ${chapter}:${start}-${end}${version ? ' ' + version : ''})`;
+
+      let copiedText = selection.replace(/\n+/g, '\n').trim() + '\n' + rangeText;
+      e.clipboardData.setData('text/plain', copiedText);
       e.preventDefault();
+    });
+
+    // 음성 인식
+    const micIcon = document.querySelector('.mic-icon');
+    const searchInput = document.getElementById('searchInput');
+
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'ko-KR';
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          transcript += event.results[i][0].transcript;
+        }
+        searchInput.value = transcript;
+      };
+
+      recognition.onerror = (event) => {
+        console.error('음성 인식 오류:', event.error);
+      };
+    } else {
+      alert("⚠️ 이 브라우저는 음성 인식을 지원하지 않습니다.");
+    }
+
+    micIcon.addEventListener('mousedown', () => {
+      if (recognition) recognition.start();
+    });
+
+    micIcon.addEventListener('mouseup', () => {
+      if (recognition) recognition.stop();
     });
   </script>
 </body>
