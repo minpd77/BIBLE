@@ -2,229 +2,92 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>성경 검색 웹앱</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>성경 웹앱</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-    }
+    body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; }
     header {
-      background-color: #003366;
+      background-color: #002f67;
       color: white;
       padding: 10px;
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
+      justify-content: space-between;
     }
-    .search-box {
+    .search-bar {
       display: flex;
-      flex: 1;
-      background: white;
-      border: 2px solid #004080;
-      border-radius: 6px;
-      margin: 10px;
       align-items: center;
+      background: white;
+      border-radius: 5px;
+      padding: 5px;
+      flex: 1;
+      margin-right: 10px;
     }
-    .search-box input {
+    .search-bar input {
+      border: none;
       flex: 1;
       font-size: 16px;
-      padding: 10px;
-      border: none;
-      outline: none;
+      padding: 5px;
     }
-    .search-box button {
+    .search-bar button, .mic-icon {
       background: none;
       border: none;
-      padding: 10px;
       cursor: pointer;
+      margin-left: 5px;
     }
-    .search-icon, .mic-icon {
-      width: 24px;
-      height: 24px;
-      stroke: #003366;
+    .filters {
+      display: flex;
+      align-items: center;
     }
-    .result {
-      padding: 20px;
-      font-size: 16px;
-      line-height: 1.8;
-    }
-    h2 { font-size: 22px; color: #002060; border-bottom: 2px solid #004080; }
-    h4 { font-size: 18px; color: #003366; margin-top: 16px; }
-    .highlight { color: red; font-weight: bold; }
-    .controls {
-      text-align: center;
-      margin: 10px;
-    }
-    .controls button {
-      font-size: 18px;
-      margin: 0 10px;
-      padding: 4px 12px;
-    }
-    #feedback {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background: #003366;
+    .filters label {
+      margin-right: 10px;
       color: white;
-      padding: 8px 12px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 14px;
     }
-    @media (max-width: 600px) {
-      .search-box {
-        flex-direction: row;
-      }
+    #results {
+      padding: 20px;
+    }
+    .verse {
+      padding: 5px 0;
+    }
+    .highlight {
+      color: red;
+      font-weight: bold;
+    }
+    .chapter-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #002f67;
+      margin-top: 20px;
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="search-box">
-      <button onclick="startVoiceSearch()" title="음성 검색">
-        <svg class="mic-icon" fill="none" viewBox="0 0 24 24" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 1v14m-6 4h12M5 18a7 7 0 0014 0" stroke="currentColor"/>
-        </svg>
-      </button>
-      <input id="searchInput" type="text" placeholder="예: 창1:1 또는 태초에" />
-      <button onclick="handleSearch()" title="검색">
-        <svg class="search-icon" fill="none" viewBox="0 0 24 24" stroke-width="2">
-          <circle cx="11" cy="11" r="7" stroke="currentColor"/>
-          <line x1="16" y1="16" x2="22" y2="22" stroke="currentColor"/>
-        </svg>
+    <div class="search-bar">
+      <img src="mic.png" class="mic-icon" width="24" />
+      <input id="searchInput" placeholder="예: 창1:1 또는 태초에" />
+      <button onclick="doSearch()">
+        <img src="search.png" width="20" />
       </button>
     </div>
-    <div id="resultCount" style="margin-left: 12px;"></div>
+    <div class="filters">
+      <label><img src="flags/kr.png" width="20" /> 개역개정</label>
+      <label><img src="flags/us.png" width="20" /> NIV</label>
+    </div>
   </header>
-
-  <div class="controls">
-    <button onclick="changeFontSize(-1)">- 글씨 크기</button>
-    <button onclick="changeFontSize(1)">+ 글씨 크기</button>
+  <div id="results">
+    <div class="chapter-title">창세기 1장</div>
+    <div class="verse">1. 태초에 하나님이 천지를 창조하시니라</div>
+    <div class="verse">2. 땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 영은 수면 위에 운행하시니라</div>
+    <div class="verse">3. 하나님이 이르시되 빛이 있으라 하시니 빛이 있었고</div>
+    <div class="verse">4. 빛이 하나님이 보시기에 좋았더라 하나님이 빛과 어둠을 나누사</div>
+    <div class="verse">5. 하나님이 빛을 낮이라 부르시고 어둠을 밤이라 부르시니라 저녁이 되고 아침이 되니 이는 첫째 날이니라</div>
   </div>
-
-  <div class="result" id="resultArea"></div>
-
-  <a id="feedback" href="mailto:minpd7@naver.com">개발자 피드백 ✉️</a>
-
   <script>
-    let fontSize = 16;
-    let bible = {};
-    const fullNameMap = {
-      '창': '창세기', '요일': '요한1서', '요이': '요한2서', '요삼': '요한3서'
-    };
-
-    async function loadBible() {
-      const res = await fetch('개역개정/창세기.json');
-      bible = await res.json();
-      renderAll();
+    function doSearch() {
+      const input = document.getElementById("searchInput").value;
+      alert("검색 기능은 나중에 구현됩니다: " + input);
     }
-
-    function changeFontSize(delta) {
-      fontSize += delta;
-      document.getElementById("resultArea").style.fontSize = fontSize + 'px';
-    }
-
-    function highlight(text, keyword) {
-      const re = new RegExp(keyword.replace(/\s/g, ''), 'gi');
-      return text.replace(re, m => `<span class="highlight">${m}</span>`);
-    }
-
-    function normalizeBook(book) {
-      return fullNameMap[book] || book;
-    }
-
-    function handleSearch() {
-      const input = document.getElementById("searchInput").value.trim();
-      const result = document.getElementById("resultArea");
-      const resultCount = document.getElementById("resultCount");
-      result.innerHTML = '';
-      resultCount.innerText = '';
-
-      if (!input) return;
-
-      if (input.includes(",")) {
-        input.split(",").forEach(ref => renderVerse(ref.trim()));
-        return;
-      }
-
-      const verseMatch = input.match(/^([가-힣]+)?\s?(\d+):(\d+)$/);
-      if (verseMatch) {
-        renderVerse(input);
-      } else {
-        let count = 0;
-        for (const chapter in bible) {
-          for (const verse in bible[chapter]) {
-            const verseText = bible[chapter][verse].replace(/\s/g, '');
-            if (verseText.includes(input.replace(/\s/g, ''))) {
-              result.innerHTML += `<p><strong>창세기 ${chapter}:${verse}</strong> - ${highlight(bible[chapter][verse], input)}</p>`;
-              count++;
-            }
-          }
-        }
-        resultCount.innerText = `검색 결과 ${count}개`;
-      }
-    }
-
-    function renderVerse(ref) {
-      const result = document.getElementById("resultArea");
-      const match = ref.match(/^([가-힣]+)?\s?(\d+):(\d+)$/);
-      if (!match) return;
-      const book = normalizeBook(match[1] || "창세기");
-      const chapter = match[2];
-      const verse = match[3];
-      const chapterData = bible[chapter];
-      if (!chapterData || !chapterData[verse]) {
-        result.innerHTML += `<p><strong>${book} ${chapter}:${verse}</strong> - 해당 구절이 없습니다.</p>`;
-        return;
-      }
-
-      result.innerHTML += `
-        <h2>${book}</h2>
-        <h4>— ${chapter}장 —</h4>
-        <p><strong>${verse}.</strong> <span class="highlight">${chapterData[verse]}</span></p>
-      `;
-    }
-
-    function renderAll() {
-      const result = document.getElementById("resultArea");
-      for (const chapter in bible) {
-        result.innerHTML += `<h2>창세기</h2>`;
-        result.innerHTML += `<h4>— ${chapter}장 —</h4>`;
-        for (const verse in bible[chapter]) {
-          result.innerHTML += `<p><strong>${verse}.</strong> ${bible[chapter][verse]}</p>`;
-        }
-      }
-    }
-
-    // 음성 인식
-    function startVoiceSearch() {
-      if (!('webkitSpeechRecognition' in window)) {
-        alert('이 브라우저는 음성인식을 지원하지 않습니다.');
-        return;
-      }
-      const recognition = new webkitSpeechRecognition();
-      recognition.lang = 'ko-KR';
-      recognition.start();
-      recognition.onresult = function(e) {
-        const transcript = e.results[0][0].transcript;
-        document.getElementById("searchInput").value = transcript;
-        handleSearch();
-      };
-    }
-
-    // 복사 시 출처 붙이기
-    document.addEventListener('copy', (e) => {
-      const selection = window.getSelection().toString();
-      if (selection.trim()) {
-        const text = selection + "\n\n(창세기 1:1-5 개역개정)";
-        e.clipboardData.setData('text/plain', text);
-        e.preventDefault();
-      }
-    });
-
-    loadBible();
   </script>
 </body>
 </html>
